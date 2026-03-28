@@ -27,7 +27,17 @@
         <form id="triage-form" class="input-section glass-panel">
             <div class="input-header">
                 <label for="symptoms">Describe the symptoms in detail:</label>
-                <span id="char-count" class="char-count" aria-live="polite">0 / 1000</span>
+                <div class="input-controls">
+                    <button type="button" id="voice-btn" class="voice-btn hidden" aria-label="Start voice input" title="Click to speak your symptoms">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <path d="M12 2a3 3 0 0 1 3 3v7a3 3 0 0 1-6 0V5a3 3 0 0 1 3-3Z"/>
+                            <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+                            <line x1="12" x2="12" y1="19" y2="22"/>
+                        </svg>
+                        <span class="voice-btn-text">Speak</span>
+                    </button>
+                    <span id="char-count" class="char-count" aria-live="polite">0 / 1000</span>
+                </div>
             </div>
             <textarea id="symptoms" maxlength="1000" aria-describedby="input-error char-count" placeholder="E.g., I'm having severe chest pain radiating to my left arm, and I feel lightheaded..."></textarea>
             <span id="input-error" class="input-error hidden" aria-live="assertive">Please describe your symptoms clearly.</span>

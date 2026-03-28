@@ -6,6 +6,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const loader = document.querySelector('.loader');
     const charCount = document.getElementById('char-count');
     const inputError = document.getElementById('input-error');
+    const voiceBtn = document.getElementById('voice-btn');
+    const voiceBtnText = voiceBtn.querySelector('.voice-btn-text');
 
     // Result elements
     const riskBadge = document.getElementById('risk-badge');
@@ -13,6 +15,60 @@ document.addEventListener('DOMContentLoaded', () => {
     const immediateActionsList = document.getElementById('immediate-actions-list');
     const avoidList = document.getElementById('avoid-list');
     const nextStepsList = document.getElementById('next-steps-list');
+
+    // ── Voice-to-Text (Web Speech API) ──
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+    if (SpeechRecognition) {
+        voiceBtn.classList.remove('hidden');
+
+        const recognition = new SpeechRecognition();
+        recognition.lang = 'en-IN';
+        recognition.continuous = false;
+        recognition.interimResults = false;
+
+        let isListening = false;
+
+        voiceBtn.addEventListener('click', () => {
+            if (isListening) {
+                recognition.stop();
+            } else {
+                recognition.start();
+            }
+        });
+
+        recognition.addEventListener('start', () => {
+            isListening = true;
+            voiceBtn.classList.add('listening');
+            voiceBtnText.textContent = 'Listening...';
+        });
+
+        recognition.addEventListener('end', () => {
+            isListening = false;
+            voiceBtn.classList.remove('listening');
+            voiceBtnText.textContent = 'Speak';
+        });
+
+        recognition.addEventListener('result', (event) => {
+            const transcript = event.results[0][0].transcript;
+            // Append to existing text rather than overwriting
+            const current = symptomsInput.value;
+            symptomsInput.value = current ? current + ' ' + transcript : transcript;
+            // Trigger the input event so the character counter updates
+            symptomsInput.dispatchEvent(new Event('input'));
+        });
+
+        recognition.addEventListener('error', (event) => {
+            isListening = false;
+            voiceBtn.classList.remove('listening');
+            voiceBtnText.textContent = 'Speak';
+
+            if (event.error === 'not-allowed') {
+                inputError.textContent = 'Microphone access denied. Please allow microphone permissions in your browser settings.';
+                inputError.classList.remove('hidden');
+            }
+        });
+    }
 
     symptomsInput.addEventListener('input', () => {
         const length = symptomsInput.value.length;

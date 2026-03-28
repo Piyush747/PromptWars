@@ -115,6 +115,7 @@ h1 {
     letter-spacing: -0.5px;
     background: linear-gradient(135deg, #e6edf3, #8b949e);
     -webkit-background-clip: text;
+    background-clip: text;
     -webkit-text-fill-color: transparent;
 }
 
@@ -168,6 +169,46 @@ textarea {
 
 .input-header label {
     margin-bottom: 0;
+}
+
+.input-controls {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+/* Voice Input Button */
+.voice-btn {
+    background: transparent;
+    border: 1px solid var(--glass-border);
+    border-radius: 8px;
+    padding: 0.35rem 0.7rem;
+    color: var(--text-secondary);
+    font-size: 0.8rem;
+    font-weight: 500;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    transition: all 0.25s ease;
+}
+
+.voice-btn:hover {
+    color: var(--accent);
+    border-color: var(--accent);
+    transform: none;
+    box-shadow: none;
+}
+
+.voice-btn.listening {
+    color: var(--risk-high);
+    border-color: var(--risk-high);
+    animation: pulse-mic 1.2s ease-in-out infinite;
+}
+
+@keyframes pulse-mic {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(248, 81, 73, 0.4); }
+    50% { box-shadow: 0 0 0 8px rgba(248, 81, 73, 0); }
 }
 
 .char-count {
