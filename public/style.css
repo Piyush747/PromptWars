@@ -157,13 +157,53 @@ textarea {
     font-family: inherit;
     font-size: 1rem;
     resize: vertical;
-    transition: all 0.3s ease;
+}
+
+.input-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.5rem;
+}
+
+.input-header label {
+    margin-bottom: 0;
+}
+
+.char-count {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+.char-count.warning {
+    color: #f5a623;
+}
+
+.char-count.limit {
+    color: var(--error-red);
+}
+
+.input-error {
+    display: block;
+    color: var(--error-red);
+    font-size: 0.85rem;
+    margin-top: 0.5rem;
+    font-weight: 600;
 }
 
 textarea:focus {
+    border-color: var(--accent-color);
     outline: none;
-    border-color: var(--accent);
-    box-shadow: 0 0 0 2px rgba(88, 166, 255, 0.3);
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+}
+
+/* Hard outline explicitly mapping WCAG focus indicators for keyboard navigation */
+textarea:focus-visible,
+button:focus-visible {
+    outline: 3px solid var(--accent-color);
+    outline-offset: 3px;
+    border-radius: 8px;
 }
 
 button {

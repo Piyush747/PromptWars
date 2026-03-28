@@ -4,6 +4,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const resultSection = document.getElementById('result-section');
     const btnText = document.querySelector('.btn-text');
     const loader = document.querySelector('.loader');
+    const charCount = document.getElementById('char-count');
+    const inputError = document.getElementById('input-error');
 
     // Result elements
     const riskBadge = document.getElementById('risk-badge');
@@ -12,10 +14,43 @@ document.addEventListener('DOMContentLoaded', () => {
     const avoidList = document.getElementById('avoid-list');
     const nextStepsList = document.getElementById('next-steps-list');
 
-    analyzeBtn.addEventListener('click', async () => {
+    symptomsInput.addEventListener('input', () => {
+        const length = symptomsInput.value.length;
+        charCount.textContent = `${length} / 1000`;
+        
+        if (length >= 10 && length <= 1000) {
+            inputError.classList.add('hidden');
+        }
+
+        if (length > 900) {
+            charCount.classList.add('warning');
+        } else {
+            charCount.classList.remove('warning');
+        }
+        
+        if (length >= 1000) {
+            charCount.classList.add('limit');
+        } else {
+            charCount.classList.remove('limit');
+        }
+    });
+
+    const triageForm = document.getElementById('triage-form');
+    triageForm.addEventListener('submit', async (e) => {
+        e.preventDefault(); // Suspend native HTTP redirection submission execution boundaries
+
         const text = symptomsInput.value.trim();
-        if (!text) {
-            alert('Please describe your symptoms first.');
+        
+        // Strict Front-End Boundaries
+        if (!text || text.length < 10) {
+            inputError.textContent = 'Please describe the symptoms in more detail (at least 10 characters).';
+            inputError.classList.remove('hidden');
+            return;
+        }
+        
+        if (text.length > 1000) {
+            inputError.textContent = 'Please limit your description to 1000 characters.';
+            inputError.classList.remove('hidden');
             return;
         }
 
@@ -66,9 +101,10 @@ document.addEventListener('DOMContentLoaded', () => {
         // Show Results
         resultSection.classList.remove('hidden');
         
-        // Scroll to results smoothly
+        // Scroll to results cleanly, forcing DOM execution thread priority towards screen-reader bounding limits.
         setTimeout(() => {
             resultSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            resultSection.focus(); // Drive screen-reader navigation implicitly to output panel directly
         }, 100);
     }
 

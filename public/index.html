@@ -17,25 +17,29 @@
 
     <main class="container">
         <header>
-            <div class="logo-wrapper">
+            <div class="logo-wrapper" aria-hidden="true">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-activity pulse"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
             </div>
             <h1>Medical Triage AI</h1>
             <p>Immediate guidance for medical situations.</p>
         </header>
 
-        <section class="input-section glass-panel">
-            <label for="symptoms">Describe the symptoms in detail:</label>
-            <textarea id="symptoms" placeholder="E.g., I'm having severe chest pain radiating to my left arm, and I feel lightheaded..."></textarea>
+        <form id="triage-form" class="input-section glass-panel">
+            <div class="input-header">
+                <label for="symptoms">Describe the symptoms in detail:</label>
+                <span id="char-count" class="char-count" aria-live="polite">0 / 1000</span>
+            </div>
+            <textarea id="symptoms" maxlength="1000" aria-describedby="input-error char-count" placeholder="E.g., I'm having severe chest pain radiating to my left arm, and I feel lightheaded..."></textarea>
+            <span id="input-error" class="input-error hidden" aria-live="assertive">Please describe your symptoms clearly.</span>
             
-            <button id="analyze-btn">
+            <button type="submit" id="analyze-btn">
                 <span class="btn-text">Analyze Symptoms</span>
-                <span class="loader hidden"></span>
+                <span class="loader hidden" aria-hidden="true"></span>
             </button>
             <p class="disclaimer"><strong>Disclaimer:</strong> This is NOT a diagnostic tool and does NOT replace professional medical advice. Call 112 or 108 immediately in a medical emergency.</p>
-        </section>
+        </form>
 
-        <section id="result-section" class="result-section hidden">
+        <section id="result-section" class="result-section hidden" tabindex="-1" aria-live="polite">
             <div class="glass-panel risk-card">
                 <div class="risk-header">
                     <h2>Risk Level</h2>
@@ -46,19 +50,19 @@
 
             <div class="recommendations-grid">
                 <div class="glass-panel action-card">
-                    <div class="card-icon action-icon">🚨</div>
+                    <div class="card-icon action-icon" aria-hidden="true">🚨</div>
                     <h3>Immediate Actions</h3>
                     <ul id="immediate-actions-list"></ul>
                 </div>
                 <div class="glass-panel avoid-card">
-                    <div class="card-icon avoid-icon">⛔</div>
+                    <div class="card-icon avoid-icon" aria-hidden="true">⛔</div>
                     <h3>What to Avoid</h3>
                     <ul id="avoid-list"></ul>
                 </div>
             </div>
 
             <div class="glass-panel next-steps-card">
-                <div class="card-icon next-icon">➡️</div>
+                <div class="card-icon next-icon" aria-hidden="true">➡️</div>
                 <h3>Next Steps</h3>
                 <ul id="next-steps-list"></ul>
             </div>

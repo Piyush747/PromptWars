@@ -1,71 +1,56 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
-import { GoogleGenerativeAI } from '@google/generative-ai';
+import path from 'path';
+import helmet from 'helmet';
+import rateLimit from 'express-rate-limit';
+import pinoHttp from 'pino-http';
+import logger from './utils/logger.js';
+import analyzeRouter from './routes/analyze.js';
+import healthRouter from './routes/health.js';
 
 dotenv.config();
+
+// Dynamically resolve relative GOOGLE_APPLICATION_CREDENTIALS strings to an absolute OS-specific path for the Vertex SDK cross-platform execution
+if (process.env.GOOGLE_APPLICATION_CREDENTIALS && !path.isAbsolute(process.env.GOOGLE_APPLICATION_CREDENTIALS)) {
+  process.env.GOOGLE_APPLICATION_CREDENTIALS = path.resolve(process.cwd(), process.env.GOOGLE_APPLICATION_CREDENTIALS);
+}
+
+// Forcibly remove any fake/cached JSON paths from your active terminal session
+// so that Vertex AI correctly defaults back to your gcloud CLI credentials.
+if (process.env.GOOGLE_APPLICATION_CREDENTIALS && process.env.GOOGLE_APPLICATION_CREDENTIALS.includes('downloaded-key.json')) {
+  delete process.env.GOOGLE_APPLICATION_CREDENTIALS;
+}
 
 const app = express();
 const port = process.env.PORT || 8080;
 
+app.use(helmet()); // Secure all HTTP headers by default
 app.use(cors());
 app.use(express.json());
+app.use(pinoHttp({ logger })); // Captures automated JSON structured logs for every HTTP request boundary
 app.use(express.static('public'));
 
-// Configure Gemini
-const apiKey = process.env.GEMINI_API_KEY;
-if (!apiKey) {
-  console.warn("WARNING: GEMINI_API_KEY is missing. API calls will fail.");
+// Rate Limiting (Defense against automated DDoS attacks)
+const apiLimiter = rateLimit({
+  windowMs: 10 * 60 * 1000, // 10 minutes
+  max: 15, // limit each IP to 15 requests per windowMs
+  message: { error: 'Too many requests created from this IP, please try again after 10 minutes.' },
+  standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
+  legacyHeaders: false, // Disable the `X-RateLimit-*` headers
+});
+
+app.use('/api/', apiLimiter); // Apply limiter explicitly to all internal API routes
+
+app.use('/health', healthRouter);
+app.use('/api/analyze', analyzeRouter);
+
+// We export the app directly allowing testing frameworks to inject their own execution context 
+// without immediately binding to a network port and throwing EADDRINUSE errors.
+if (process.env.NODE_ENV !== 'test') {
+  app.listen(port, () => {
+    logger.info(`AI Medical Assistant MVP (Modular API) running on port ${port}`);
+  });
 }
-const genAI = new GoogleGenerativeAI(apiKey || 'dummy');
-const model = genAI.getGenerativeModel({
-  model: 'gemini-2.5-flash',
-  systemInstruction: `You are an AI Medical First-Response Triage Assistant. Your role is purely triage and harm-reduction. 
-You MUST NOT diagnose conditions or prescribe medications. 
-Analyze the user's messy symptom input and return a strictly formatted JSON object.
 
-# INSTRUCTIONS
-1. Evaluate the urgency (High, Medium, Low) based on standard triage principles.
-2. Outline immediate, safe actions the user should take right now.
-3. List things the user must absolutely AVOID doing.
-4. Recommend actionable next steps (e.g., "Go to ER immediately", "Consult a doctor tomorrow", "Rest and monitor").
-5. Assess your confidence level based on the clarity of the input.
-6. **IMPORTANT:** The user is located in India. All recommendations, emergency protocols, and contact numbers MUST be grounded in the Indian medical context (e.g., recommend calling 112 or 108 for medical emergencies).
-
-# JSON SCHEMA
-Respond ONLY with a valid JSON object matching this exact structure:
-{
-  "risk_level": "High | Medium | Low",
-  "summary": "Brief summary of symptoms",
-  "immediate_actions": ["step 1", "step 2"],
-  "avoid": ["avoid 1", "avoid 2"],
-  "next_steps": ["next step 1"],
-  "confidence": "Low | Medium | High"
-}`,
-  generationConfig: {
-    responseMimeType: "application/json",
-  }
-});
-
-app.post('/api/analyze', async (req, res) => {
-  try {
-    const { text } = req.body;
-    if (!text) {
-      return res.status(400).json({ error: 'Text input is required' });
-    }
-
-    const result = await model.generateContent(text);
-    const responseText = result.response.text();
-
-    // Parse the JSON to ensure it's valid before sending
-    const jsonOutput = JSON.parse(responseText);
-    res.json(jsonOutput);
-  } catch (error) {
-    console.error("Error analyzing symptoms:", error);
-    res.status(500).json({ error: 'Failed to analyze symptoms. Please try again later.' });
-  }
-});
-
-app.listen(port, () => {
-  console.log(`AI Medical Assistant MVP running on port ${port}`);
-});
+export default app;
