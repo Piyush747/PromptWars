@@ -19,7 +19,7 @@ if (!apiKey) {
 }
 const genAI = new GoogleGenerativeAI(apiKey || 'dummy');
 const model = genAI.getGenerativeModel({
-  model: 'gemini-1.5-pro',
+  model: 'gemini-2.5-flash',
   systemInstruction: `You are an AI Medical First-Response Triage Assistant. Your role is purely triage and harm-reduction. 
 You MUST NOT diagnose conditions or prescribe medications. 
 Analyze the user's messy symptom input and return a strictly formatted JSON object.
